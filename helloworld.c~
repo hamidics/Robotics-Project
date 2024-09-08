@@ -1,0 +1,169 @@
+/* helloworld.c for TOPPERS/ATK(OSEK) */ 
+#include "kernel.h"
+#include "kernel_id.h"
+#include "ecrobot_interface.h"
+
+
+/* OSEK declarations */
+
+DeclareTask(OSEK_Task_Background);
+//DeclareTask(Move_forward);
+
+void user_1ms_isr_type2(void){ /* do nothing */ }
+
+/* NXT motor port configuration */
+#define PORT_MOTOR_R NXT_PORT_B
+#define PORT_MOTOR_L NXT_PORT_C
+
+/* NXT sensor port configuration */
+#define PORT_SONAR   NXT_PORT_S3
+
+/* NXT light sensor port configuration */
+#define PORT_LIGHT_R   NXT_PORT_S1
+#define PORT_LIGHT_L   NXT_PORT_S4
+
+/* NXT motor spedd */
+#define MOTOR_SPEED 50
+
+void ecrobot_device_initialize()
+{
+	ecrobot_init_sonar_sensor(NXT_PORT_S3) ;
+	ecrobot_set_light_sensor_active(NXT_PORT_S1);
+	ecrobot_set_light_sensor_active(NXT_PORT_S4);
+	/*ecrobot_init_compass_sensor(NXT_PORT_S3); */
+}
+
+void move_forward(){
+	nxt_motor_set_speed( NXT_PORT_C,50,1);
+	nxt_motor_set_speed( NXT_PORT_B,50,1);
+}
+
+void move_stop(){
+	nxt_motor_set_speed( NXT_PORT_C,0,1);
+	nxt_motor_set_speed( NXT_PORT_B,0,1);
+}
+
+
+
+void rotate_left(){
+	ecrobot_status_monitor("Turring Left");
+	nxt_motor_set_speed( PORT_MOTOR_R,MOTOR_SPEED,1);
+	nxt_motor_set_speed( PORT_MOTOR_L,-MOTOR_SPEED,1);
+	nxt_motor_set_count( PORT_MOTOR_R, 0);	
+	while(1){
+		if(nxt_motor_get_count(PORT_MOTOR_R) > 160)
+		{
+			ecrobot_status_monitor("Stop");
+			nxt_motor_set_speed( PORT_MOTOR_R,0,1);
+			nxt_motor_set_speed( PORT_MOTOR_L,0,1);
+			break;
+		}
+	}
+	systick_wait_ms(500);
+}
+
+void rotate_right(){
+
+}
+
+TASK(OSEK_Task_Background)
+{
+
+ while(1){
+	 rotate_left();
+
+	//move forward till black line
+	/*while(1){
+		int lightOne=ecrobot_get_light_sensor(NXT_PORT_S1);
+		int lightTwo=ecrobot_get_light_sensor(NXT_PORT_S4);
+
+		//robot reached black line
+		if (lightOne > 500 || lightTwo >500) break;
+	}
+
+	int lightOne=ecrobot_get_light_sensor(NXT_PORT_S1);
+	int lightTwo=ecrobot_get_light_sensor(NXT_PORT_S4);
+	
+	//direction management
+	if(lightOne < 500){
+		nxt_motor_set_speed( NXT_PORT_C,45,1);	
+	}
+	if(lightTwo < 500){
+		nxt_motor_set_speed( NXT_PORT_B,45,1);	
+	}
+
+	*/
+
+	/*
+	if(ecrobot_get_light_sensor(NXT_PORT_S4) < 500){
+		ecrobot_status_monitor("S4 is behind the line");
+		nxt_motor_set_speed( NXT_PORT_B,-20,1);
+		nxt_motor_set_speed( NXT_PORT_C, 20,1);
+		while(1){
+		  if(ecrobot_get_light_sensor(NXT_PORT_S4) > 500){
+			 break;
+		  }
+		}
+	}
+	if(ecrobot_get_light_sensor(NXT_PORT_S1) < 500){		
+		ecrobot_status_monitor("S1 is behind the line");
+		nxt_motor_set_speed( NXT_PORT_C,-20,1);
+		nxt_motor_set_speed( NXT_PORT_B, 20,1);
+		while(1){
+		  if(ecrobot_get_light_sensor(NXT_PORT_S1) > 500){
+			 break;
+		 }
+		}
+	}
+	*/
+
+	// reset motor count
+	nxt_motor_set_count( NXT_PORT_C, 0);
+	while(1){
+		if(nxt_motor_get_count(NXT_PORT_C) > 450){
+			nxt_motor_set_speed( NXT_PORT_C,0,1);
+			nxt_motor_set_speed( NXT_PORT_B,0,1);
+			break;
+			}
+		}
+	move_stop();
+	systick_wait_ms(500);
+	}
+	TerminateTask();
+}
+
+
+
+
+void ecrobot_device_terminate() {
+	ecrobot_set_light_sensor_inactive(NXT_PORT_S1) ;
+	ecrobot_term_sonar_sensor(NXT_PORT_S3) ;
+	ecrobot_set_light_sensor_inactive(NXT_PORT_S4) ;
+}
+
+
+
+/*
+int x= ecrobot_get_touch_sensor(NXT_PORT_S1);
+int y=ecrobot_get_sonar_sensor(NXT_PORT_S2);
+/*int c=ecrobot_get_compass_sensor(NXT_PORT_S3);
+display_clear(1);
+
+display_int(c,2);
+display_update(); */
+		/*if(y>=12){
+
+		 nxt_motor_set_speed( NXT_PORT_A,50,1);
+	nxt_motor_set_speed( NXT_PORT_B,50,1);
+}else {
+	 
+	nxt_motor_set_speed( NXT_PORT_A,-50,1);
+nxt_motor_set_speed( NXT_PORT_B,-50,1);
+}
+void ecrobot_device_terminate() {
+ecrobot_term_sonar_sensor(NXT_PORT_S2) ;
+/*ecrobot_term_compass_sensor(NXT_PORT_S3);*/
+/*} 
+	systick_wait_ms(500); /* 500msec wait */
+
+
